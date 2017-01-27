@@ -1,0 +1,547 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "D1 = \"This computer science course is awesome science\".lower()\n",
+    "D2 = \"Welcome lab to computer science computer lab\".lower()\n",
+    "D3 = \"Lab welcome to this lab this is awesome lab space\".lower()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "terms = []\n",
+    "corpus = [D1,D2,D3]\n",
+    "for doc in corpus:\n",
+    "    terms = terms + doc.split()\n",
+    "terms = list(set(terms))\n",
+    "terms"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "TF = []\n",
+    "n = [0 for i in range(len(terms))]\n",
+    "for doc in corpus:\n",
+    "    tf_doc = [0 for i in range(len(terms))]\n",
+    "\n",
+    "    for term in doc.split():\n",
+    "        term_i = terms.index(term)\n",
+    "        tf_doc[term_i] = tf_doc[term_i] + 1\n",
+    "    \n",
+    "    \n",
+    "    for item in range(len(terms)):\n",
+    "        if tf_doc[item] > 0:\n",
+    "            n[item] = n[item] + 1\n",
+    "\n",
+    "    TF.append(tf_doc)\n",
+    "TF"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "TFN = []\n",
+    "for TFj in TF:\n",
+    "    TFj = [TFij / float(max(TFj)) for TFij in TFj]\n",
+    "    TFN.append(TFj)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "TFN"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## InverseDocumentFrequency"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "import math\n",
+    "N = len(corpus)"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "IDF = []\n",
+    "for termi in range(len(terms)):\n",
+    "    IDF.append(math.log(3/float(n[termi]),2))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "IDF"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "TFNIDF = []\n",
+    "for TFNj in TFN:\n",
+    "    TFNjIDF = []\n",
+    "    for termIDX in range(len(terms)):\n",
+    "        TFNjIDF.append(TFNj[termIDX]*IDF[termIDX])\n",
+    "    TFNIDF.append(TFNjIDF)\n",
+    "        "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "%matplotlib inline\n",
+    "import pandas as pd\n",
+    "import matplotlib.pyplot as plt\n",
+    "import numpy as np\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "TFIDX = pd.DataFrame(TFNIDF)\n",
+    "TFIDX.columns = terms\n",
+    "TFIDX"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "plt.pcolor(TFIDX)\n",
+    "plt.yticks(np.arange(0.5, len(TFIDX.index), 1), TFIDX.index)\n",
+    "plt.xticks(np.arange(0.5, len(TFIDX.columns), 1), TFIDX.columns)\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "from scipy.cluster.hierarchy import dendrogram, linkage\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "Z = linkage(TFIDX, 'ward')\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "plt.figure(figsize=(25, 10))\n",
+    "plt.title('Hierarchical Clustering Dendrogram')\n",
+    "plt.xlabel('sample index')\n",
+    "plt.ylabel('distance')\n",
+    "dendrogram(\n",
+    "    Z,\n",
+    "    leaf_rotation=90.,  # rotates the x axis labels\n",
+    "    leaf_font_size=8.,  # font size for the x axis labels\n",
+    ")\n",
+    "plt.show()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Hashes 101"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "hashtable = [0] * 10"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "hashtable"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "def hash_function(x): return x % 10 "
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "# Insert a value at a specific key location\n",
+    "\n",
+    "def Hinsert(htable,key,value): htable[hash_function(key)] = value\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "Hinsert(hashtable,41,'apple')\n",
+    "Hinsert(hashtable,93,'banana')\n",
+    "\n",
+    "hashtable"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "Hinsert(hashtable, 23, 'tangerine')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "hashtable"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Classically we would say well if you get collisions, we should improve the data structure.\n",
+    "\n",
+    "But our objective here is not to prevent collisions, our objective is to create a well balanced hash function.\n",
+    "\n",
+    "**Try implementing the example on page 9 in the book.**\n",
+    "\n",
+    "You can use the following updated hash functions as a starting point, note the bucket size is fixed. You should probably change that."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "\n",
+    "def yourname_hash_function(x): return ??? \n",
+    "\n",
+    "\n",
+    "my_lHtable = [[] for x in range(??)]\n",
+    "\n",
+    "def lHinsert(htable,key,value): htable[yourname_hash_function(key)].append((key,value))\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "lHinsert(my_lHtable,41,'apple')\n",
+    "lHinsert(my_lHtable,93,'banana')\n",
+    "lHinsert(my_lHtable,23,'tangerine')"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "my_lHtable"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Hashes and Indexes?\n",
+    "\n",
+    "Imagine that instead of providing a key and a value, you used the value to generate the key.\n",
+    "When you use a value to generate a key, that's called an index\n",
+    "This then allows quick retrival of information from the hash.\n",
+    "\n",
+    "Create a function that converts the value given as a string (fruit names in the prior example) to a numerical key value (which will then be hashed using your previous function)\n",
+    "\n",
+    "*Hint - Try searching google for string to value conversion in python... but you are free to use any mechanism you wish*"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "def yourname_string_to_int(myString): \n",
+    "    myKey = ???\n",
+    "    return myKey\n",
+    "\n",
+    "yourname_string_to_int(\"foo\")"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Your inserts would now look like this, though you (sh)/(c)ould create a new insert function..."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": [
+    "myNewHashtable = [[] for x in range(??)]\n",
+    "\n",
+    "lHinsert(myNewHashtable, yourname_string_to_int('apple'),'apple')\n",
+    "lHinsert(myNewHashtable, yourname_string_to_int('banana'),'banana')\n",
+    "lHinsert(myNewHashtable, yourname_string_to_int('tangerine'),'tangerine')\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "myNewHashtable"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {
+    "collapsed": true
+   },
+   "source": [
+    "## Computing $e$ (brute forcing)\n",
+    "\n",
+    "$e = $ limit as $(1+\\frac{1}{x})^x $ as $x$ tends towards infinite"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "previousE = 0.0\n",
+    "for x in range(1,1000):\n",
+    "    newE = pow(1 + (1/float(x)),x)\n",
+    "    if (newE - previousE)/newE < 0.000001:\n",
+    "        print \"x @ \", x\n",
+    "        break\n",
+    "    previousE = newE\n",
+    "print \"e appox =\", previousE"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "Consider $(1+a)^b$ where a is relatively small\n",
+    "\n",
+    "$(1+a)^b = (1+a)^{(b*a)}*(1/a)$\n",
+    "\n",
+    "Let $a = 1/x$ ; clearly $1/a = x$\n",
+    "\n",
+    "Substitute\n",
+    "\n",
+    "$(1 + \\frac{1}{x})^{x(ba)}$\n",
+    "\n",
+    "Exponent Rules!\n",
+    "\n",
+    "$((1 + \\frac{1}{x})^{x})^{(ba)}$\n",
+    "\n",
+    "But we already know that $(1 + \\frac{1}{x})^{x})$ is approx by $e$, so\n",
+    "\n",
+    "$((1 + \\frac{1}{x})^{x})^{(ba)} \\approx e^{ba} \\approx (1+a)^b$\n",
+    "\n",
+    "\n",
+    "\n",
+    "What this allows is to solve problems liks $(1+a)^b)$ as $e^{ab}$\n",
+    "\n",
+    "Really what's important is that $(1 - a)^b \\approx e^{-ab}$ when a is small and b is large!"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Taylor Expansion of $e^x$ , approx hold for small values of x\n",
+    "$e^x = \\sum_{i=0}^\\infty \\frac{x^i}{i!}$\n",
+    "\n",
+    "$e^x = 1 + x + \\frac{x^2}{2!} + \\frac{x^3}{3!} + \\frac{x^4}{4!}\\cdots =  1 + x + \\frac{x^2}{2} + \\frac{x^3}{6} + \\frac{x^4}{24} \\cdots$"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": false
+   },
+   "outputs": [],
+   "source": [
+    "import math\n",
+    "x = -1\n",
+    "approx = 0\n",
+    "for i in range(0,10):\n",
+    "    approx = approx + math.pow(x,i)/math.factorial(i)\n",
+    "print approx, \"~\", math.exp(x)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {
+    "collapsed": true
+   },
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 2",
+   "language": "python",
+   "name": "python2"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 2
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython2",
+   "version": "2.7.11"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 0
+}
